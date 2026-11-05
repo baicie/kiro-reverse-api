@@ -73,9 +73,10 @@ jobs:
       IMAGE_REF: ${{ needs.docker.outputs.image }}
       IMAGE_DIGEST: ${{ needs.docker.outputs.digest }}
       # 国内云主机直连 ghcr.io 慢，优先走加速源，按 digest 拉取（内容寻址，可校验）
-      # 该仓库直连 ghcr.io 可用（实测 ~4-5 分钟冷拉），默认不走加速源；
-      # 若某天直连变慢，用仓库变量 GHCR_MIRRORS 逗号分隔列出来即可。
-      GHCR_MIRRORS: ${{ vars.GHCR_MIRRORS || '' }}
+      # 本机直连 ghcr.io 的 blob CDN 会卡死（185.199.109.154 上 0 字节/10s），
+      # 实测 ghcr.dockerproxy.net 可用且快；按 digest 拉取，镜像内容由哈希保证，
+      # 换源不影响可信度。可用仓库变量 GHCR_MIRRORS 覆盖（逗号分隔多个候选）。
+      GHCR_MIRRORS: ${{ vars.GHCR_MIRRORS || 'ghcr.dockerproxy.net' }}
       DEPLOY_HOST: ${{ vars.DEPLOY_HOST || '82.156.234.84' }}
       DEPLOY_USER: ${{ vars.DEPLOY_USER || 'ubuntu' }}
       DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
