@@ -22,6 +22,8 @@ services:
       KIRO_NODE_VERSION: ${KIRO_NODE_VERSION:-}
       # Builder ID 账号查不到 profile ARN，可在 .env 里钉死一个
       KIRO_PROFILE_ARN: ${KIRO_PROFILE_ARN:-}
+      # 管理面板登录态有效期（Go duration，默认 12h）
+      KIRO_ADMIN_SESSION_TTL: ${KIRO_ADMIN_SESSION_TTL:-}
     volumes:
       - ./data:/app/state
     healthcheck:

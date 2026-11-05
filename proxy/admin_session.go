@@ -9,12 +9,15 @@ import (
 	"kiro-proxy/config"
 	"kiro-proxy/logger"
 	"net/http"
+	"os"
+	"strings"
 	"sync"
 	"time"
 )
 
 const (
-	// adminSessionTTL bounds how long a stolen browser token stays useful.
+	// adminSessionTTL bounds how long a stolen browser token stays useful. A deployment that
+	// keeps the console open longer overrides it with KIRO_ADMIN_SESSION_TTL.
 	adminSessionTTL = 12 * time.Hour
 	// adminTicketTTL covers one EventSource connect. Tickets ride in a URL, so
 	// they expire fast enough that an access log entry is worthless.
@@ -67,13 +70,25 @@ func (s *adminSessionStore) pruneLocked(now time.Time) {
 
 // Issue mints a session token. The caller must have already verified the
 // password.
+// adminSessionLifetime reports how long a freshly issued console token stays valid.
+// The default is deliberately short; an operator who wants a login to survive the
+// night sets KIRO_ADMIN_SESSION_TTL to a Go duration such as 720h.
+func adminSessionLifetime() time.Duration {
+	if raw := strings.TrimSpace(os.Getenv("KIRO_ADMIN_SESSION_TTL")); raw != "" {
+		if parsed, err := time.ParseDuration(raw); err == nil && parsed > 0 {
+			return parsed
+		}
+	}
+	return adminSessionTTL
+}
+
 func (s *adminSessionStore) Issue() (string, time.Time, error) {
 	token, err := newSecret()
 	if err != nil {
 		return "", time.Time{}, err
 	}
 	now := time.Now()
-	expiry := now.Add(adminSessionTTL)
+	expiry := now.Add(adminSessionLifetime())
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
