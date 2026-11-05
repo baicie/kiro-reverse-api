@@ -1,0 +1,31 @@
+# 生产部署用 compose：只消费 CI 推上来的镜像，不在服务器上构建。
+# 由 .github/workflows/deploy.yml 通过 SSH 传送并执行；也可手工 docker compose -f 使用。
+services:
+  kiro-proxy:
+    image: ${IMAGE_REPO:-ghcr.io/baicie/kiro-reverse-api}:${IMAGE_TAG:-latest}
+    container_name: ${CONTAINER_NAME:-kiro-proxy}
+    restart: unless-stopped
+    # bind mount 目录属主与容器内 uid 一致，避免 SQLite 只读
+    user: "${PUID:-0}:${PGID:-0}"
+    # 只绑回环：外网访问一律经 Caddy（443/8443），容器不直接暴露
+    ports:
+      - "127.0.0.1:${HOST_PORT:-8080}:8080"
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      DATA_DIR: /app/state
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # 管理面板密码：首次部署由 CI 写进 .env，之后保持不变
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    volumes:
+      - ./data:/app/state
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
