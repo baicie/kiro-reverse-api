@@ -1,9 +1,10 @@
 name: Build Docker Image
 
 on:
+  # 发布（v* tag）由 deploy.yml 负责：构建 amd64 + 推 GHCR + 滚动部署。
+  # 这里只做分支/PR 的冒烟测试与多架构预构建，避免同一次发布重复构建两遍。
   push:
     branches: [main, master, dev]
-    tags: ['v*']
   pull_request:
     branches: [main, master, dev]
   workflow_dispatch:
