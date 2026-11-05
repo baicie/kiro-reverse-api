@@ -16,6 +16,12 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       # 管理面板密码：首次部署由 CI 写进 .env，之后保持不变
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      # 上报给上游的客户端身份：数据库重建后仍然保持，不必再手改 kiro.db
+      KIRO_VERSION: ${KIRO_VERSION:-}
+      KIRO_SYSTEM_VERSION: ${KIRO_SYSTEM_VERSION:-}
+      KIRO_NODE_VERSION: ${KIRO_NODE_VERSION:-}
+      # Builder ID 账号查不到 profile ARN，可在 .env 里钉死一个
+      KIRO_PROFILE_ARN: ${KIRO_PROFILE_ARN:-}
     volumes:
       - ./data:/app/state
     healthcheck:

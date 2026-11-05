@@ -1045,26 +1045,36 @@ type KiroClientConfig struct {
 	NodeVersion   string
 }
 
+// GetKiroClientConfig reports the client identity the upstream sees. An environment
+// value wins over the stored one: these strings describe the client that Kiro is
+// talking to, a fresh database starts without them, and only the deployment knows
+// which IDE version it imitates.
 func GetKiroClientConfig() KiroClientConfig {
 	cfgLock.RLock()
 	defer cfgLock.RUnlock()
 
-	kiroVersion := "0.11.107"
-	if cfg != nil && cfg.KiroVersion != "" {
+	kiroVersion := strings.TrimSpace(os.Getenv("KIRO_VERSION"))
+	if kiroVersion == "" && cfg != nil {
 		kiroVersion = cfg.KiroVersion
 	}
+	if kiroVersion == "" {
+		kiroVersion = "0.11.107"
+	}
 
-	systemVersion := ""
-	if cfg != nil {
+	systemVersion := strings.TrimSpace(os.Getenv("KIRO_SYSTEM_VERSION"))
+	if systemVersion == "" && cfg != nil {
 		systemVersion = cfg.SystemVersion
 	}
 	if systemVersion == "" {
 		systemVersion = defaultSystemVersion()
 	}
 
-	nodeVersion := "22.22.0"
-	if cfg != nil && cfg.NodeVersion != "" {
+	nodeVersion := strings.TrimSpace(os.Getenv("KIRO_NODE_VERSION"))
+	if nodeVersion == "" && cfg != nil {
 		nodeVersion = cfg.NodeVersion
+	}
+	if nodeVersion == "" {
+		nodeVersion = "22.22.0"
 	}
 
 	return KiroClientConfig{

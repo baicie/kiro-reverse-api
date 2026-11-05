@@ -11,6 +11,7 @@ import (
 	"kiro-proxy/logger"
 	"net/http"
 	neturl "net/url"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -166,6 +167,11 @@ func resolveProfileArnContext(ctx context.Context, account *config.Account) (str
 	//! API keys have no IDE profile; a lookup would only fail and spam the log.
 	if config.IsAPIKeyAccount(account) {
 		return "", nil
+	}
+	//! A pinned environment value is the same promise as the per-account field, and it is
+	//! what a rebuilt database needs: Builder ID accounts cannot look the ARN up.
+	if envArn := strings.TrimSpace(os.Getenv("KIRO_PROFILE_ARN")); envArn != "" {
+		return envArn, nil
 	}
 	if profileArn := strings.TrimSpace(account.ProfileArn); profileArn != "" {
 		return profileArn, nil
