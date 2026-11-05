@@ -126,7 +126,9 @@ jobs:
             printf '%s' "${SSH_PASSWORD}" > "${PASS_FILE}"; chmod 600 "${PASS_FILE}"
             SSH=(sshpass -f "${PASS_FILE}" ssh)
           fi
-          SSH+=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=20 -p "${DEPLOY_PORT}")
+          # 冷拉镜像要 4-5 分钟：加 keepalive，避免中间链路把长时间无交互的连接掐掉（曾以 exit 255 中断部署）
+          SSH+=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=20 -p "${DEPLOY_PORT}"
+                -o ServerAliveInterval=15 -o ServerAliveCountMax=10)
 
           COMPOSE_B64="$(base64 < deploy/docker-compose.deploy.yml | tr -d '\n')"
           "${SSH[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" 'bash -s' -- \
@@ -171,7 +173,9 @@ jobs:
             printf '%s' "${SSH_PASSWORD}" > "${PASS_FILE}"; chmod 600 "${PASS_FILE}"
             SSH=(sshpass -f "${PASS_FILE}" ssh)
           fi
-          SSH+=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=20 -p "${DEPLOY_PORT}")
+          # 冷拉镜像要 4-5 分钟：加 keepalive，避免中间链路把长时间无交互的连接掐掉（曾以 exit 255 中断部署）
+          SSH+=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=20 -p "${DEPLOY_PORT}"
+                -o ServerAliveInterval=15 -o ServerAliveCountMax=10)
 
           "${SSH[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" 'bash -s' -- \
             "${IMAGE_REF}" "${DEPLOY_TAG}" "${IMAGE_DIGEST}" "${CONTAINER_NAME}" \
