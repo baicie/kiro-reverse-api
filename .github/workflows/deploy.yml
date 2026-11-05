@@ -175,10 +175,10 @@ jobs:
 
           "${SSH[@]}" "${DEPLOY_USER}@${DEPLOY_HOST}" 'bash -s' -- \
             "${IMAGE_REF}" "${DEPLOY_TAG}" "${IMAGE_DIGEST}" "${CONTAINER_NAME}" \
-            "${DEPLOY_DIR}" "${HEALTH_URL}" "${GHCR_MIRRORS}" "${HOST_PORT}" "${PUID}" "${PGID}" <<'REMOTE'
+            "${DEPLOY_DIR}" "${HEALTH_URL}" "${HOST_PORT}" "${PUID}" "${PGID}" "${GHCR_MIRRORS:-}" <<'REMOTE'
           set -euo pipefail
           IMAGE="$1"; TAG="$2"; DIGEST="$3"; CONTAINER="$4"; RAW_DIR="$5"; HEALTH="$6"
-          MIRRORS="$7"; HOST_PORT="$8"; PUID="$9"; PGID="${10}"
+          HOST_PORT="$7"; PUID="$8"; PGID="$9"; MIRRORS="${10:-}"
           DIR="${RAW_DIR/#\$HOME/$HOME}"; DIR="${DIR/#\~/$HOME}"
           CANONICAL="${IMAGE}:${TAG}"
           REPO_PATH="${IMAGE#ghcr.io/}"
